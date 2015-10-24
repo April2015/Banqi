@@ -2,7 +2,7 @@
  * Created by Dongbo on 2/12/15.
  */
 
-angular.module('myApp', ['ngTouch', 'ui.bootstrap'])
+angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
 .factory('gameLogic', function() {
 
     'use strict';
@@ -614,15 +614,19 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap'])
         isMoveOk: isMoveOk
     };
 
-});;angular.module('myApp').controller('Ctrl',
-    ['$scope', '$log', '$timeout','$rootScope','$translate',
-        'gameService', 'stateService', 'gameLogic',
-        'aiService',
-        'resizeGameAreaService', 'dragAndDropService',
-        function ($scope, $log, $timeout, $rootScope, $translate,
-                  gameService, stateService, gameLogic,
-                  aiService,
-                  resizeGameAreaService, dragAndDropService) {
+});
+;angular.module('myApp').controller('Ctrl',
+    ['$scope', '$log', '$timeout','$rootScope',
+    // '$translate',
+        // 'gameService', 'stateService', 'gameLogic',
+        'gameLogic', 'aiService',
+        // 'resizeGameAreaService', 'dragAndDropService',
+        function ($scope, $log, $timeout, $rootScope,
+          // $translate,
+                  // gameService, stateService, gameLogic,
+                  gameLogic,
+                  aiService) {
+                  // resizeGameAreaService, dragAndDropService) {
 
             'use strict';
 
@@ -636,8 +640,8 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap'])
 
             dragAndDropService.addDragListener("gameArea", handleDragEvent);
 
-            console.log("Translation of 'RULES_OF_BANQI' is " + $translate('RULES_OF_BANQI'));
-            
+            // console.log("Translation of 'RULES_OF_BANQI' is " + $translate('RULES_OF_BANQI'));
+
             window.e2e_test_stateService = stateService; // to allow us to load any state in our e2e tests.
 
             //make game size scalable

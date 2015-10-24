@@ -2,7 +2,7 @@
  * Created by Dongbo on 2/12/15.
  */
 
-angular.module('myApp', ['ngTouch', 'ui.bootstrap'])
+angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
 .factory('gameLogic', function() {
 
     'use strict';
