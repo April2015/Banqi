@@ -5,56 +5,20 @@ module.exports = function (grunt) {
     // Project configuration.
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        // jshint: {
-        //     options: {
-        //         curly: true,
-        //         eqeqeq: true,
-        //         eqnull: true,
-        //         browser: true,
-        //         strict: true,
-        //         undef: true,
-        //         unused: true,
-        //         bitwise: true,
-        //         forin: true,
-        //         freeze: true,
-        //         latedef: true,
-        //         noarg: true,
-        //         nocomma: true,
-        //         nonbsp: true,
-        //         nonew: true,
-        //         notypeof: true,
-        //         singleGroups: true,
-        //         jasmine: true,
-        //         jquery: true,
-        //         globals: {
-        //             module: false, // for Gruntfile.js
-        //             exports: false, // for protractor.conf.js
-        //             inject: false, // testing angular
-        //             angular: false,
-        //             console: false,
-        //             browser: false, element: false, by: false // Protractor
-        //         }
-        //     },
-        //     all: [
-        //         'Gruntfile.js',
-        //         'karma.conf.js',
-        //         'protractor.conf.js',
-        //         //'src/*.js'
-        //     ]
+        // karma: {
+        //     unit: {
+        //         configFile: 'karma.conf.js',
+        //         background: true,
+        //         singleRun: false
+        //     }
         // },
-        karma: {
-            unit: {
-                configFile: 'karma.conf.js',
-                background: true,
-                singleRun: false
-            }
-        },
-        // Run karma and watch files using:
-        // grunt karma:unit:start watch
-        watch: {
-            files: ['src/*.js'],
-            tasks: ['jshint', 'karma:unit:run']
-        },
+        // // Run karma and watch files using:
+        // // grunt karma:unit:start watch
+        // watch: {
+        //     files: ['src/*.js'],
+        //     // tasks: ['jshint', 'karma:unit:run']
+        //         tasks: ['karma:unit:run']
+        // },
         concat: {
             options: {
                 separator: ';'
@@ -62,7 +26,8 @@ module.exports = function (grunt) {
             dist: {
                 // Order is important! gameLogic.js must be first because it defines myApp angular module.
                 src: [
-                    'src/gameLogic.js',
+                    //  'src/gameLogic.js',
+                    'ts_output_readonly_do_NOT_change_manually/src/gameLogic.js',
                     'src/game.js',
                     'src/aiService.js'
                 ],
@@ -160,9 +125,18 @@ module.exports = function (grunt) {
         //}
     });
 
+
+//     require('load-grunt-tasks')(grunt);
+//
+// // Default task(s).
+// grunt.registerTask('default', [
+//     'concat', 'uglify',
+//     'processhtml', 'manifest', 'http-server']);
+
+
     grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-karma');
+    // grunt.loadNpmTasks('grunt-contrib-jshint');
+    // grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-processhtml');
@@ -171,11 +145,12 @@ module.exports = function (grunt) {
     //grunt.loadNpmTasks('grunt-protractor-runner');
 
     // Default task(s).
-    grunt.registerTask('default', ['karma',
+    grunt.registerTask('default', [
+      // 'karma',
         'concat', 'uglify',
         'processhtml', 'manifest',
         'http-server',
-        //'protractor'
+        // 'protractor'
     ]);
 
 };
