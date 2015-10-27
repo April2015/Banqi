@@ -1,12 +1,5 @@
-/**
- * Created by Dongbo on 2/12/15.
- */
-
-angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
-.factory('gameLogic', function() {
-
-    'use strict';
-
+var gameLogic;
+(function (gameLogic) {
     /**
      * initial the Game
      *
@@ -31,51 +24,45 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
      * @returns {*[]}
      */
     function initialGame() {
-
         return [
             //set turn
-            {setTurn: {turnIndex: 0}},
-
+            { setTurn: { turnIndex: 0 } },
             //set delta, (-1, -1) (-1, -1) means initial game
-            {set: {key: 'delta', value: {rowBeforeMove: -1, colBeforeMove: -1, rowAfterMove: -1, colAfterMove: -1}}},
-
+            { set: { key: 'delta', value: { rowBeforeMove: -1, colBeforeMove: -1, rowAfterMove: -1, colAfterMove: -1 } } },
             //set keys
-            {set: {key: 'b0x0', value: 'R1'}},//Soldier;
-            {set: {key: 'b0x1', value: 'R1'}},//Soldier;
-            {set: {key: 'b0x2', value: 'R1'}},//Soldier;
-            {set: {key: 'b0x3', value: 'R1'}},//Soldier;
-            {set: {key: 'b0x4', value: 'R1'}},//Soldier;
-            {set: {key: 'b0x5', value: 'R2'}},//Cannon
-            {set: {key: 'b0x6', value: 'R2'}},//Cannon
-            {set: {key: 'b0x7', value: 'R3'}},//Horse
-            {set: {key: 'b1x0', value: 'R3'}},//Horse
-            {set: {key: 'b1x1', value: 'R4'}},//Chariot
-            {set: {key: 'b1x2', value: 'R4'}},//Chariot
-            {set: {key: 'b1x3', value: 'R5'}},//Elephant
-            {set: {key: 'b1x4', value: 'R5'}},//Elephant
-            {set: {key: 'b1x5', value: 'R6'}},//Advisor
-            {set: {key: 'b1x6', value: 'R6'}},//Advisor
-            {set: {key: 'b1x7', value: 'R7'}},//General
-
-            {set: {key: 'b2x0', value: 'B1'}},//Soldier;
-            {set: {key: 'b2x1', value: 'B1'}},//Soldier;
-            {set: {key: 'b2x2', value: 'B1'}},//Soldier;
-            {set: {key: 'b2x3', value: 'B1'}},//Soldier;
-            {set: {key: 'b2x4', value: 'B1'}},//Soldier;
-            {set: {key: 'b2x5', value: 'B2'}},//Cannon
-            {set: {key: 'b2x6', value: 'B2'}},//Cannon
-            {set: {key: 'b2x7', value: 'B3'}},//Horse
-            {set: {key: 'b3x0', value: 'B3'}},//Horse
-            {set: {key: 'b3x1', value: 'B4'}},//Chariot
-            {set: {key: 'b3x2', value: 'B4'}},//Chariot
-            {set: {key: 'b3x3', value: 'B5'}},//Elephant
-            {set: {key: 'b3x4', value: 'B5'}},//Elephant
-            {set: {key: 'b3x5', value: 'B6'}},//Advisor
-            {set: {key: 'b3x6', value: 'B6'}},//Advisor
-            {set: {key: 'b3x7', value: 'B7'}},//General
-
-            {set: {key: 'stage', value: 0}},
-
+            { set: { key: 'b0x0', value: 'R1' } },
+            { set: { key: 'b0x1', value: 'R1' } },
+            { set: { key: 'b0x2', value: 'R1' } },
+            { set: { key: 'b0x3', value: 'R1' } },
+            { set: { key: 'b0x4', value: 'R1' } },
+            { set: { key: 'b0x5', value: 'R2' } },
+            { set: { key: 'b0x6', value: 'R2' } },
+            { set: { key: 'b0x7', value: 'R3' } },
+            { set: { key: 'b1x0', value: 'R3' } },
+            { set: { key: 'b1x1', value: 'R4' } },
+            { set: { key: 'b1x2', value: 'R4' } },
+            { set: { key: 'b1x3', value: 'R5' } },
+            { set: { key: 'b1x4', value: 'R5' } },
+            { set: { key: 'b1x5', value: 'R6' } },
+            { set: { key: 'b1x6', value: 'R6' } },
+            { set: { key: 'b1x7', value: 'R7' } },
+            { set: { key: 'b2x0', value: 'B1' } },
+            { set: { key: 'b2x1', value: 'B1' } },
+            { set: { key: 'b2x2', value: 'B1' } },
+            { set: { key: 'b2x3', value: 'B1' } },
+            { set: { key: 'b2x4', value: 'B1' } },
+            { set: { key: 'b2x5', value: 'B2' } },
+            { set: { key: 'b2x6', value: 'B2' } },
+            { set: { key: 'b2x7', value: 'B3' } },
+            { set: { key: 'b3x0', value: 'B3' } },
+            { set: { key: 'b3x1', value: 'B4' } },
+            { set: { key: 'b3x2', value: 'B4' } },
+            { set: { key: 'b3x3', value: 'B5' } },
+            { set: { key: 'b3x4', value: 'B5' } },
+            { set: { key: 'b3x5', value: 'B6' } },
+            { set: { key: 'b3x6', value: 'B6' } },
+            { set: { key: 'b3x7', value: 'B7' } },
+            { set: { key: 'stage', value: 0 } },
             //shuffle
             {
                 shuffle: {
@@ -86,42 +73,41 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
                 }
             },
             //hide
-            {setVisibility: {key: 'b0x0', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b0x1', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b0x2', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b0x3', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b0x4', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b0x5', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b0x6', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b0x7', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b1x0', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b1x1', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b1x2', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b1x3', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b1x4', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b1x5', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b1x6', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b1x7', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b2x0', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b2x1', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b2x2', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b2x3', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b2x4', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b2x5', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b2x6', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b2x7', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b3x0', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b3x1', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b3x2', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b3x3', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b3x4', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b3x5', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b3x6', visibleToPlayerIndexes: []}},
-            {setVisibility: {key: 'b3x7', visibleToPlayerIndexes: []}}
-            ];
-
+            { setVisibility: { key: 'b0x0', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b0x1', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b0x2', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b0x3', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b0x4', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b0x5', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b0x6', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b0x7', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b1x0', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b1x1', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b1x2', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b1x3', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b1x4', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b1x5', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b1x6', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b1x7', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b2x0', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b2x1', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b2x2', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b2x3', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b2x4', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b2x5', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b2x6', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b2x7', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b3x0', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b3x1', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b3x2', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b3x3', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b3x4', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b3x5', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b3x6', visibleToPlayerIndexes: [] } },
+            { setVisibility: { key: 'b3x7', visibleToPlayerIndexes: [] } }
+        ];
     }
-
+    gameLogic.initialGame = initialGame;
     /**
      * Turn a position (a,b) to 'axb' key version
      * ep. key(0,1) returns '0x1'
@@ -133,7 +119,6 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
     function key(x, y) {
         return 'b' + x.toString() + 'x' + y.toString();
     }
-
     /**
      * * Return a winner (either 'R' or 'B') or '' if there is no winner.
      *
@@ -151,8 +136,8 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
         for (var i = 0; i < 4; i++) {
             for (var j = 0; j < 8; j++) {
                 //if there is a hide piece, the game won't end
-                if (stateBeforeMove[key(i, j)] === null) return '';
-
+                if (stateBeforeMove[key(i, j)] === null)
+                    return '';
                 if (stateBeforeMove[key(i, j)][0] === 'R') {
                     numR++;
                 }
@@ -165,14 +150,14 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
             return 'B';
         if (numB === 0)
             return 'R';
-
-        if (angular.equals(getPossibleMoves(stateBeforeMove, turnIndexAfterMove), [])){
-            if (turnIndexAfterMove === 0) return 'B';
-            if (turnIndexAfterMove === 1) return 'R';
+        if (angular.equals(getPossibleMoves(stateBeforeMove, turnIndexAfterMove), [])) {
+            if (turnIndexAfterMove === 0)
+                return 'B';
+            if (turnIndexAfterMove === 1)
+                return 'R';
         }
         return '';
     }
-
     /**
      * Check if the game is tie
      *
@@ -194,8 +179,8 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
         for (var i = 0; i < 4; i++) {
             for (var j = 0; j < 8; j++) {
                 //if there is a hide piece, the game won't end
-                if (stateBeforeMove[key(i, j)] === null) return false;
-
+                if (stateBeforeMove[key(i, j)] === null)
+                    return false;
                 if (stateBeforeMove[key(i, j)][0] === 'R') {
                     numR++;
                     Rx = i;
@@ -211,7 +196,6 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
         // If Red and Black has both one piece and they are not next to each other, it's a tie
         if (numR === 1 && numB === 1 && !isNext(Rx, Ry, Bx, By))
             return true;
-
         //Red tie situate
         if (numR === 1 && numB > 1) {
             for (var i = 0; i < 4; i++) {
@@ -235,7 +219,6 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
             }
             return true;
         }
-
         //Black tie situate
         if (numB === 1 && numR > 1) {
             for (var i = 0; i < 4; i++) {
@@ -258,11 +241,8 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
             }
             return true;
         }
-
         return false;
-
     }
-
     /**
      * Check if two spot (x1,y1) and (x2, y2) is next to each other
      *
@@ -281,7 +261,6 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
         }
         return false;
     }
-
     /**
      * Returns all the possible moves for the given board and turnIndexBeforeMove.
      * Returns an empty array if the game is over.
@@ -292,15 +271,14 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
      */
     function getPossibleMoves(stateBeforeMove, turnIndexBeforeMove) {
         var possibleMoves = [];
-        var i, j, k, l;
-        for (i = 0; i < 4; i++) {
-            for (j = 0; j < 8; j++) {
-                for (k = -1; k < 4; k++) {
-                    for (l = -1; l < 8; l++) {
+        for (var i = 0; i < 4; i++) {
+            for (var j = 0; j < 8; j++) {
+                for (var k = -1; k < 4; k++) {
+                    for (var l = -1; l < 8; l++) {
                         try {
                             possibleMoves.push(createMove(stateBeforeMove, i, j, k, l, turnIndexBeforeMove));
-                        } catch (e) {
-                            // if there are any exceptions then the move is illegal
+                        }
+                        catch (e) {
                         }
                     }
                 }
@@ -308,7 +286,7 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
         }
         return possibleMoves;
     }
-
+    gameLogic.getPossibleMoves = getPossibleMoves;
     /**
      * CreateMove function
      * Move a piece from (rowBeforeMove, colBeforeMove) to (rowAfterMove, colAfterMove)
@@ -356,24 +334,21 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
             throw new Error("Same piece, move canceled!");
         }
         //if state 0, move or kill
-        var needToSet;
-
+        var needToSet = [];
         //turn a piece over
         if ((stateBeforeMove[key(rowBeforeMove, colBeforeMove)] === null) && (rowAfterMove === -1 && colAfterMove === -1)) {
-            needToSet = [{setVisibility: {key: key(rowBeforeMove, colBeforeMove), visibleToPlayerIndexes: null}}];
+            needToSet = [{ setVisibility: { key: key(rowBeforeMove, colBeforeMove), visibleToPlayerIndexes: null } }];
         }
-        //move or kill piece
         else {
             //move piece
             if (stateBeforeMove[key(rowAfterMove, colAfterMove)] === '') {
                 needToSet = movePiece(stateBeforeMove, rowBeforeMove, colBeforeMove, rowAfterMove, colAfterMove);
             }
-            //kill piece
             else {
                 needToSet = killPiece(stateBeforeMove, rowBeforeMove, colBeforeMove, rowAfterMove, colAfterMove);
             }
         }
-        return [{setTurn: {turnIndex: turnIndexBeforeMove}},
+        var moves = [{ setTurn: { turnIndex: turnIndexBeforeMove } },
             {
                 set: {
                     key: 'delta', value: {
@@ -382,10 +357,21 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
                     }
                 }
             },
-            {set: {key: 'stage', value: 1}}].concat(needToSet);
-
+            { set: { key: 'stage', value: 1 } }];
+        moves = moves.concat(needToSet);
+        return moves;
+        // [{setTurn: {turnIndex: turnIndexBeforeMove}},
+        //     {
+        //         set: {
+        //             key: 'delta', value: {
+        //                 rowBeforeMove: rowBeforeMove, colBeforeMove: colBeforeMove,
+        //                 rowAfterMove: rowAfterMove, colAfterMove: colAfterMove
+        //             }
+        //         }
+        //     },
+        //     {set: {key: 'stage', value: 1}}].concat(needToSet);
     }
-
+    gameLogic.createMove = createMove;
     /**
      * checkGameEnd
      * if state 1, check if game end
@@ -397,7 +383,6 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
     function checkGameEnd(stateBeforeMove, turnIndexBeforeMove) {
         var firstOperation;
         var winner = getWinner(stateBeforeMove, 1 - turnIndexBeforeMove);
-
         if (winner !== '' || isTie(stateBeforeMove)) {
             // Game over.
             firstOperation = {
@@ -405,15 +390,15 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
                     endMatchScores: (winner === 'R' ? [1, 0] : (winner === 'B' ? [0, 1] : [0, 0]))
                 }
             };
-        } else {
-            // Game continues. Now it's the opponent's turn (the turn switches from 0 to 1 and 1 to 0).
-            firstOperation = {setTurn: {turnIndex: 1 - turnIndexBeforeMove}};
         }
-
+        else {
+            // Game continues. Now it's the opponent's turn (the turn switches from 0 to 1 and 1 to 0).
+            firstOperation = { setTurn: { turnIndex: 1 - turnIndexBeforeMove } };
+        }
         return [firstOperation,
-            {set: {key: 'stage', value: 0}}]
+            { set: { key: 'stage', value: 0 } }];
     }
-
+    gameLogic.checkGameEnd = checkGameEnd;
     /**
      * Move a piece from (rowBeforeMove, colBeforeMove) to a next free spot (rowAfterMove, colAfterMove)
      *
@@ -430,15 +415,14 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
         }
         else {
             return [{
-                set: {
-                    key: key(rowAfterMove, colAfterMove),
-                    value: stateBeforeMove[key(rowBeforeMove, colBeforeMove)]
-                }
-            },
-                {set: {key: key(rowBeforeMove, colBeforeMove), value: ''}}];
+                    set: {
+                        key: key(rowAfterMove, colAfterMove),
+                        value: stateBeforeMove[key(rowBeforeMove, colBeforeMove)]
+                    }
+                },
+                { set: { key: key(rowBeforeMove, colBeforeMove), value: '' } }];
         }
     }
-
     /**
      * Kill a piece, place the killer piece from (rowBeforeMove, colBeforeMove) on killed piece (rowAfterMove, colAfterMove)
      * Return the the sets
@@ -453,7 +437,7 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
     function killPiece(stateBeforeMove, rowBeforeMove, colBeforeMove, rowAfterMove, colAfterMove) {
         //can not kill a unturned piece
         if (stateBeforeMove[key(rowAfterMove, colAfterMove)] === null) {
-            throw new Error("You can not kill a unturned piece!")
+            throw new Error("You can not kill a unturned piece!");
         }
         //For special Cannon
         if (stateBeforeMove[key(rowBeforeMove, colBeforeMove)][1] === '2') {
@@ -462,15 +446,14 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
                 var cnt = 0;
                 var bigger;
                 var smaller;
-                if (colBeforeMove > colAfterMove){
+                if (colBeforeMove > colAfterMove) {
                     bigger = colBeforeMove;
                     smaller = colAfterMove;
                 }
-                else{
+                else {
                     bigger = colAfterMove;
                     smaller = colBeforeMove;
                 }
-
                 for (var i = smaller + 1; i < bigger; i++) {
                     if (stateBeforeMove[key(rowAfterMove, i)] !== '') {
                         cnt++;
@@ -478,23 +461,23 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
                 }
                 if (cnt === 1) {
                     return [{
-                        set: {
-                            key: key(rowAfterMove, colAfterMove),
-                            value: stateBeforeMove[key(rowBeforeMove, colBeforeMove)]
-                        }
-                    },
-                        {set: {key: key(rowBeforeMove, colBeforeMove), value: ''}}];
+                            set: {
+                                key: key(rowAfterMove, colAfterMove),
+                                value: stateBeforeMove[key(rowBeforeMove, colBeforeMove)]
+                            }
+                        },
+                        { set: { key: key(rowBeforeMove, colBeforeMove), value: '' } }];
                 }
             }
             if (colBeforeMove === colAfterMove) {
                 var cnt = 0;
                 var bigger;
                 var smaller;
-                if (rowBeforeMove > rowAfterMove){
+                if (rowBeforeMove > rowAfterMove) {
                     bigger = rowBeforeMove;
                     smaller = rowAfterMove;
                 }
-                else{
+                else {
                     bigger = rowAfterMove;
                     smaller = rowBeforeMove;
                 }
@@ -505,38 +488,32 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
                 }
                 if (cnt === 1) {
                     return [{
-                        set: {
-                            key: key(rowAfterMove, colAfterMove),
-                            value: stateBeforeMove[key(rowBeforeMove, colBeforeMove)]
-                        }
-                    },
-                        {set: {key: key(rowBeforeMove, colBeforeMove), value: ''}}];
+                            set: {
+                                key: key(rowAfterMove, colAfterMove),
+                                value: stateBeforeMove[key(rowBeforeMove, colBeforeMove)]
+                            }
+                        },
+                        { set: { key: key(rowBeforeMove, colBeforeMove), value: '' } }];
                 }
             }
             throw new Error("You can not kill the piece at that position!");
-
         }
-        //For special general soldier option
         else if (stateBeforeMove[key(rowBeforeMove, colBeforeMove)][1] === '7'
             && stateBeforeMove[key(rowAfterMove, colAfterMove)][1] === '1') {
             throw new Error("General can not kills soldier, soldier kills General!");
         }
-        //For special general soldier option
         else if (stateBeforeMove[key(rowBeforeMove, colBeforeMove)][1] === '1'
             && stateBeforeMove[key(rowAfterMove, colAfterMove)][1] === '7') {
             return movePiece(stateBeforeMove, rowBeforeMove, colBeforeMove, rowAfterMove, colAfterMove);
         }
-        //For pieces not Cannon, and not general soldier option
         else {
             //rank compare
             if (stateBeforeMove[key(rowBeforeMove, colBeforeMove)][1] >= stateBeforeMove[key(rowAfterMove, colAfterMove)][1]) {
                 return movePiece(stateBeforeMove, rowBeforeMove, colBeforeMove, rowAfterMove, colAfterMove);
             }
             throw new Error("You can not kill the piece at that position!");
-
         }
     }
-
     /**
      * isMoveOk function
      *
@@ -547,11 +524,9 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
         var move = params.move;
         var turnIndexBeforeMove = params.turnIndexBeforeMove;
         var stateBeforeMove = params.stateBeforeMove;
-
         // The state and turn after move are not needed in any game where all state is public.
         //var turnIndexAfterMove = params.turnIndexAfterMove;
         //var stateAfterMove = params.stateAfterMove;
-
         // We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
         // to verify that move is legal.
         try {
@@ -559,20 +534,14 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
             if (stateBeforeMove !== (undefined || null)) {
                 stage = stateBeforeMove.stage;
             }
-
             console.log('stage', stage);
-
             if (stage === 0) {
-
                 var deltaValue = move[1].set.value;
-
                 var rowBeforeMove = deltaValue.rowBeforeMove;
                 var colBeforeMove = deltaValue.colBeforeMove;
                 var rowAfterMove = deltaValue.rowAfterMove;
                 var colAfterMove = deltaValue.colAfterMove;
-                var expectedMove = createMove(stateBeforeMove, rowBeforeMove, colBeforeMove,
-                    rowAfterMove, colAfterMove, turnIndexBeforeMove);
-
+                var expectedMove = createMove(stateBeforeMove, rowBeforeMove, colBeforeMove, rowAfterMove, colAfterMove, turnIndexBeforeMove);
                 if (!angular.equals(move, expectedMove)) {
                     console.log('move, expectedMove are not equal');
                     return false;
@@ -580,7 +549,6 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
             }
             else if (stage === 1) {
                 var expectedMove = checkGameEnd(stateBeforeMove, turnIndexBeforeMove);
-
                 if (!angular.equals(move, expectedMove)) {
                     console.log('move, expectedMove are not equal');
                     return false;
@@ -592,12 +560,13 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
                 //the move and expected move won't equal because move would set hide pieces to null
                 if (!angular.equals(move, expectedMove)) {
                     console.log('move: ', move);
-                    console.log('expectedMove: ', expectedMove)
+                    console.log('expectedMove: ', expectedMove);
                     console.log('move, expectedMove are not equal');
                     return false;
                 }
             }
-        } catch (e) {
+        }
+        catch (e) {
             // if there are any exceptions then the move is illegal
             console.log('got exceptions in isMoveOk: ', e);
             return false;
@@ -605,15 +574,17 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
         console.log('isMoveOk is True!');
         return true;
     }
-
+    gameLogic.isMoveOk = isMoveOk;
+})(gameLogic || (gameLogic = {}));
+angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
+    .factory('gameLogic', function () {
     return {
-        initialGame: initialGame,
-        getPossibleMoves: getPossibleMoves,
-        createMove: createMove,
-        checkGameEnd: checkGameEnd,
-        isMoveOk: isMoveOk
+        initialGame: gameLogic.initialGame,
+        getPossibleMoves: gameLogic.getPossibleMoves,
+        createMove: gameLogic.createMove,
+        checkGameEnd: gameLogic.checkGameEnd,
+        isMoveOk: gameLogic.isMoveOk
     };
-
 });
 ;angular.module('myApp').controller('Ctrl',
     ['$scope', '$log', '$timeout','$rootScope',

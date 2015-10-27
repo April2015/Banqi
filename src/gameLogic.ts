@@ -1,16 +1,5 @@
-
-// interface IState {
-//   delta: {rowBeforeMove: number, colBeforeMove: number, rowAfterMove: number, colAfterMove: number};
-//   b0x0: string; b0x1: string; b0x2: string; b0x3: string; b0x4: string; b0x5: string; b0x6: string; b0x7: string;
-//   b1x0: string; b1x1: string; b1x2: string; b1x3: string; b1x4: string; b1x5: string; b1x6: string; b1x7: string;
-//   b2x0: string; b2x1: string; b2x2: string; b2x3: string; b2x4: string; b2x5: string; b2x6: string; b2x7: string;
-//   b3x0: string; b3x1: string; b3x2: string; b3x3: string; b3x4: string; b3x5: string; b3x6: string; b3x7: string;
-//   stage: number;
-// }
-
 interface IState {
   delta: {rowBeforeMove: number, colBeforeMove: number, rowAfterMove: number, colAfterMove: number};
-  keys: string[];
   stage: number;
 }
 
@@ -397,7 +386,7 @@ export  function getPossibleMoves(stateBeforeMove: IState, turnIndexBeforeMove: 
             },
             {set: {key: 'stage', value: 1}}];
             moves = moves.concat(needToSet);
-        return needToSet;
+        return moves;
         // [{setTurn: {turnIndex: turnIndexBeforeMove}},
         //     {
         //         set: {
