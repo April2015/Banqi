@@ -122,6 +122,7 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
 
     }
 
+
     /**
      * Turn a position (a,b) to 'axb' key version
      * ep. key(0,1) returns '0x1'
