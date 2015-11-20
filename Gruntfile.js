@@ -28,8 +28,10 @@ module.exports = function (grunt) {
                 src: [
                     //  'src/gameLogic.js',
                     'ts_output_readonly_do_NOT_change_manually/src/gameLogic.js',
-                    'src/game.js',
-                    'src/aiService.js'
+                    'ts_output_readonly_do_NOT_change_manually/src/game.js',
+                    // 'src/game.js',
+                    'ts_output_readonly_do_NOT_change_manually/src/aiService.js'
+                    // 'src/aiService.js'
                 ],
                 dest: 'dist/everything.js'
             }

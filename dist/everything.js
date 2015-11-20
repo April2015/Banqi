@@ -586,705 +586,598 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
         isMoveOk: gameLogic.isMoveOk
     };
 });
-;angular.module('myApp').controller('Ctrl',
-    ['$scope', '$log', '$timeout','$rootScope',
-    // '$translate',
-        // 'gameService', 'stateService', 'gameLogic',
-        'gameLogic', 'aiService',
-        // 'resizeGameAreaService', 'dragAndDropService',
-        function ($scope, $log, $timeout, $rootScope,
-          // $translate,
-                  // gameService, stateService, gameLogic,
-                  gameLogic,
-                  aiService) {
-                  // resizeGameAreaService, dragAndDropService) {
-
-            'use strict';
-
-            var gameArea = document.getElementById("gameArea");
-            var rowsNum = 4;
-            var colsNum = 8;
-            var draggingStartedRowCol = null; // The {row: YY, col: XX} where dragging started.
-            var draggingPiece = null;
-
-            //var isHelpIconClicked = false ;// check if the helper icon is clicked
-
-            dragAndDropService.addDragListener("gameArea", handleDragEvent);
-
-            // console.log("Translation of 'RULES_OF_BANQI' is " + $translate('RULES_OF_BANQI'));
-
-            window.e2e_test_stateService = stateService; // to allow us to load any state in our e2e tests.
-
-            //make game size scalable
-            resizeGameAreaService.setWidthToHeight(2);
-
-            /**
-             * handle the Drag Event using DragAndDropListener
-             *
-             * @param type
-             * @param clientX
-             * @param clientY
-             */
-            function handleDragEvent(type, clientX, clientY) {
-                // Center point in gameArea
-                var x = clientX - gameArea.offsetLeft;
-                var y = clientY - gameArea.offsetTop;
-                var row, col;
-                // Is outside gameArea?
-                if (x < 0 || y < 0 || x >= gameArea.clientWidth || y >= gameArea.clientHeight) {
-                    console.log("outside gameArea");
-                    if (draggingPiece) {
-                        // Drag the piece where the touch is (without snapping to a square).
-                        var size = getSquareWidthHeight();
-                        setDraggingPieceTopLeft({top: y - size.height / 2, left: x - size.width / 2});
-                    } else {
-                        return;
-                    }
-                } else {
-                    // Inside gameArea. Let's find the containing square's row and col
-                    var col = Math.floor(colsNum * x / gameArea.clientWidth);
-                    var row = Math.floor(rowsNum * y / gameArea.clientHeight);
-                    console.log("now at: ", row, col);
-
-                    //check if the help screen is Hide
-                    //var helpModel = document.getElementById("helpModal");
-                    //var helpModelHideCheck = helpModel.getAttribute("class");
-                    //var isHelpModelHide;
-                    //if (helpModelHideCheck === "overlayModal ng-hide") isHelpModelHide = true;
-                    //else isHelpModelHide = false;
-                    //
-                    //console.log("isHelpModelHide", isHelpModelHide);
-
-
-                    //console.log("isHelpIconClicked", isHelpIconClicked);
-
-                    //if (isHelpIconClicked) {
-                    //    isHelpIconClicked = false;
-                    //    return;
-                    //}
-
-                    if (type === "touchstart" && !draggingStartedRowCol) {
-                        // drag started
-                        draggingStartedRowCol = {row: row, col: col};
-
-                        if (($scope.stateAfterMove[key(row, col)] !== null)//not hide
-                            && ($scope.stateAfterMove[key(row, col)] !== '')//has piece
-                            && ((($scope.turnIndex === 0) && ($scope.stateAfterMove[key(row, col)][0] ==='R'))//red piece can move
-                                || (($scope.turnIndex === 1) && ($scope.stateAfterMove[key(row, col)][0] ==='B'))//blue piece can move
-                                )
-                            ){
-                            draggingPiece = document.getElementById("img_" + draggingStartedRowCol.row + "x" + draggingStartedRowCol.col);
-                        }
-                    }
-                    if (type === "touchend") {
-                        var from = draggingStartedRowCol;
-                        var to = {row: row, col: col};
-                        dragDone(from, to);
-                    } else {
-                        // Drag continue
-                        var size = getSquareWidthHeight();
-                        setDraggingPieceTopLeft({top: y - size.height / 2, left: x - size.width / 2});
-                    }
-                }
-                if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
-                    // drag ended
-                    // return the piece to it's original style (then angular will take care to hide it).
-                    setDraggingPieceTopLeft(getSquareTopLeft(draggingStartedRowCol.row, draggingStartedRowCol.col));
-                    draggingStartedRowCol = null;
-                    if (draggingPiece !== null) {
-                        draggingPiece.removeAttribute("style");//fix broken UI
-                        draggingPiece = null;
-                    }
-                }
-            }
-
-            /**
-             * set Dragging Piece Top Left
-             *
-             * @param topLeft
-             */
-            function setDraggingPieceTopLeft(topLeft) {
-                var size = getSquareWidthHeight();
-                var top = size.height / 10;
-                var left = size.width / 10;
-
-                var originalSize = getSquareTopLeft(draggingStartedRowCol.row, draggingStartedRowCol.col);
-                if (draggingPiece !== null) {
-                    draggingPiece.style.left = (topLeft.left - originalSize.left + left) + "px";
-                    draggingPiece.style.top = (topLeft.top - originalSize.top + top) + "px";
-                }
-            }
-
-            /**
-             * get Square Width Height of board (square position)
-             * @returns {{width: number, height: number}}
-             */
-            function getSquareWidthHeight() {
-                return {
-                    width: gameArea.clientWidth *.96 / colsNum,
-                    height: gameArea.clientHeight *.98 / rowsNum
-                };
-            }
-
-            /**
-             * get Square Top Left position
-             * @param row
-             * @param col
-             * @returns {{top: number, left: number}}
-             */
-            function getSquareTopLeft(row, col) {
-                var size = getSquareWidthHeight();
-                return {top: row * size.height, left: col * size.width}
-            }
-
-            /**
-             * drag Done listener
-             * @param from
-             * @param to
-             */
-            function dragDone(from, to) {
-                console.log("DragDone");
-                $rootScope.$apply(function () {
-                    var msg = "Dragged piece " + from.row + "x" + from.col + " to square " + to.row + "x" + to.col;
-                    console.log(msg);
-
-                    if (!$scope.isYourTurn) {
-                        return;
-                    }
-
-                    //turn a piece
-                    if ((from.row === to.row) && (from.col === to.col)
-                        && $scope.stateAfterMove[key(from.row, from.col)] === null) {
-                        //turn the piece
-                        try {
-                            var move = gameLogic.createMove($scope.stateAfterMove,
-                                from.row, from.col, -1, -1, $scope.turnIndex);
-                            $scope.isYourTurn = false; // to prevent making another move
-                            gameService.makeMove(move);
-                        } catch (e) {
-                            $log.info(["Can't turn piece:", from.row, from.col, -1, -1]);
-                            return;
-                        }
-                    }
-                    //move piece
-                    else {
-                        try {
-                            var move = gameLogic.createMove($scope.stateAfterMove,
-                                from.row, from.col, to.row, to.col, $scope.turnIndex);
-                            $scope.isYourTurn = false; // to prevent making another move
-                            gameService.makeMove(move);
-
-
-                        } catch (e) {
-                            $log.info(["Can not move the piece:", from.row, from.col, to.row, to.col]);
-
-                            return;
-                        }
-                    }
-                });
-            }
-
-            /**
-             * get integers for calculation
-             *
-             * @param number
-             * @returns {Array}
-             */
-            function getIntegersTill(number) {
-                var res = [];
-                for (var i = 0; i < number; i++) {
-                    res.push(i);
-                }
-                return res;
-            }
-
-            $scope.rows = getIntegersTill(rowsNum);
-            $scope.cols = getIntegersTill(colsNum);
-            $scope.rowsNum = rowsNum;
-            $scope.colsNum = colsNum;
-
-
-            var computerMoved = 0;// check if AI already made a move
-
-            /**
-             * send the computer move (AI)
-             */
-            function sendComputerMove() {
-
-                var move = aiService.createComputerMove($scope.stateAfterMove, $scope.turnIndex,
-                    // at most 1 second for the AI to choose a move (but might be much quicker)
-                    {millisecondsLimit: 1000});
-                console.log("computer move: ", move);
+;var game;
+(function (game) {
+    var animationEnded = false;
+    var canMakeMove = false;
+    var isComputerTurn = false;
+    game.isHelpModalShown = false;
+    var state = null;
+    var delta;
+    var turnIndex = null;
+    var gameArea;
+    var rowsNum = 4;
+    var colsNum = 8;
+    var draggingStartedRowCol = null;
+    var draggingPiece = null;
+    function init() {
+        console.log("Translation of 'RULES_OF_BANQI' is " + translate('RULES_OF_BANQI'));
+        resizeGameAreaService.setWidthToHeight(2);
+        gameService.setGame({
+            // gameDeveloperEmail: "xiaodongbo627@gmail.com",
+            minNumberOfPlayers: 2,
+            maxNumberOfPlayers: 2,
+            isMoveOk: gameLogic.isMoveOk,
+            updateUI: updateUI
+        });
+        // See http://www.sitepoint.com/css3-animation-javascript-event-handlers/
+        document.addEventListener("animationend", animationEndedCallback, false); // standard
+        document.addEventListener("webkitAnimationEnd", animationEndedCallback, false); // WebKit
+        document.addEventListener("oanimationend", animationEndedCallback, false); // Opera
+        dragAndDropService.addDragListener("gameArea", handleDragEvent);
+    }
+    game.init = init;
+    function animationEndedCallback() {
+        $rootScope.$apply(function () {
+            log.info("Animation ended");
+            animationEnded = true;
+            sendComputerMove();
+        });
+    }
+    function sendComputerMove() {
+        if (!isComputerTurn) {
+            return;
+        }
+        isComputerTurn = false; // to make sure the computer can only move once.
+        var move = aiService.createComputerMove(state, turnIndex, { millisecondsLimit: 1000 });
+        log.info("computer move: ", move);
+        gameService.makeMove(move);
+    }
+    function updateUI(params) {
+        log.info("Game got updateUI:", params);
+        animationEnded = false;
+        state = params.stateAfterMove;
+        delta = state.delta;
+        canMakeMove = params.turnIndexAfterMove >= 0 &&
+            params.yourPlayerIndex === params.turnIndexAfterMove; // it's my turn
+        var turnChanged;
+        if (turnIndex !== params.turnIndexAfterMove) {
+            turnChanged = true;
+        }
+        else
+            turnChanged = false;
+        turnIndex = params.turnIndexAfterMove;
+        if (!delta && canMakeMove) {
+            try {
+                var move = gameLogic.initialGame();
                 gameService.makeMove(move);
-
-                //var possibleMoves = gameLogic.getPossibleMoves($scope.stateAfterMove, $scope.turnIndex);
-                //console.log('possibleMoves: ', possibleMoves);
-                //gameService.makeMove(possibleMoves[Math.floor(Math.random()*possibleMoves.length)]);
             }
-
-            /**
-             * updateUI function
-             *
-             * @param params
-             */
-            function updateUI(params) {
-                $scope.stateAfterMove = params.stateAfterMove;
-                $scope.delta = params.stateAfterMove.delta;
-                $scope.isYourTurn = params.turnIndexAfterMove >= 0 && // game is ongoing
-                params.yourPlayerIndex === params.turnIndexAfterMove; // it's my turn
-
-                var turnChanged;
-                if ($scope.turnIndex !== params.turnIndexAfterMove) {
-                    turnChanged = true;
+            catch (e) {
+                log.info(e);
+                log.info("initialGame() failed");
+            }
+            return;
+        }
+        // Is it the computer's turn?
+        isComputerTurn = canMakeMove &&
+            params.playersInfo[params.yourPlayerIndex].playerId === '';
+        if (isComputerTurn) {
+            // To make sure the player won't click something and send a move instead of the computer sending a move.
+            canMakeMove = false;
+            // We calculate the AI move only after the animation finishes,
+            // because if we call aiService now
+            // then the animation will be paused until the javascript finishes.
+            if (!state.delta) {
+                // This is the first move in the match, so
+                // there is not going to be an animation, so
+                // call sendComputerMove() now (can happen in ?onlyAIs mode)
+                sendComputerMove();
+            }
+        }
+        //check if the game is end
+        //
+        if ((!turnChanged) && (delta !== undefined)
+            && ((delta.rowBeforeMove !== -1) || (delta.colBeforeMove !== -1))
+            && state.stage === 1) {
+            log.info('delta: ', delta);
+            try {
+                canMakeMove = false; // to prevent making another move
+                gameService.makeMove(gameLogic.checkGameEnd(state, turnIndex));
+            }
+            catch (e) {
+                log.info(e);
+                log.info("checkGameEnd failed!");
+                return;
+            }
+        }
+        //animation
+        //
+        if ((turnChanged) && (delta !== undefined)) {
+            //if it's tuning a piece
+            if (((delta.rowAfterMove === -1) || (delta.colAfterMove === -1))
+                && ((delta.rowBeforeMove !== -1) || (delta.colBeforeMove !== -1))) {
+                var row = delta.rowBeforeMove;
+                var col = delta.colBeforeMove;
+                var img = document.getElementById('img_' + row + 'x' + col);
+                if (img.className === 'slowlyAppear1') {
+                    img.className = "slowlyAppear2";
                 }
-                else{
-                    turnChanged = false;
-                }
-
-                $scope.turnIndex = params.turnIndexAfterMove;
-
-                //initial the game
-                if (!$scope.delta && $scope.isYourTurn) {
-                    initial();
-                    return;
-                }
-
-                // Is it the computer's turn?
-                  if (computerMoved !== 1
-                      && $scope.isYourTurn
-                      && params.playersInfo[params.yourPlayerIndex].playerId === '') {
-                      computerMoved = 1;// to make sure the UI won't send another move.
-                    // Waiting 0.5 seconds to let the move animation finish; if we call aiService
-                    // then the animation is paused until the javascript finishes.
-                      $scope.isYourTurn = false;
-                      $timeout(sendComputerMove, 1000);
-                  }
-                else
-                  {
-                      computerMoved = 0;
-                  }
-
-                //check if the game is end
-                //
-                if ((!turnChanged) && ($scope.delta !== undefined)
-                    && (($scope.delta.rowBeforeMove !== -1) || ($scope.delta.colBeforeMove !== -1))
-                    && $scope.stateAfterMove.stage === 1){
-
-                    console.log('delta: ', $scope.delta);
-                    try {
-                        var move = gameLogic.checkGameEnd($scope.stateAfterMove, $scope.turnIndex);
-                        $scope.isYourTurn = false; // to prevent making another move
-                        gameService.makeMove(move);
-
-                    } catch (e) {
-                        $log.info(e);
-                        $log.info("checkGameEnd failed!");
-                        return;
-                    }
-                }
-
-                //animation
-                //
-                if ((turnChanged) && ($scope.delta !== undefined)) {
-                    //if it's tuning a piece
-                    if ((($scope.delta.rowAfterMove === -1) || ($scope.delta.colAfterMove === -1))
-                        && (($scope.delta.rowBeforeMove !== -1) || ($scope.delta.colBeforeMove !== -1))) {
-                        var row = $scope.delta.rowBeforeMove;
-                        var col = $scope.delta.colBeforeMove;
-                        var img = document.getElementById('img_' + row + 'x' + col);
-
-                        if (img.className === 'slowlyAppear1') {
-                            img.className = "slowlyAppear2";
-                        }
-                        else {
-                            img.className = "slowlyAppear1";
-                        }
-                    }
-                    //if it's moving piece
-                    else if (($scope.delta.rowBeforeMove !== -1) || ($scope.delta.colBeforeMove !== -1)){
-                        var row = $scope.delta.rowAfterMove;
-                        var col = $scope.delta.colAfterMove;
-                        var img = document.getElementById('img_' + row + 'x' + col);
-                        if (img.className === 'scale1') {
-                            img.className = "scale2";
-                        }
-                        else {
-                            img.className = "scale1";
-                        }
-                    }
+                else {
+                    img.className = "slowlyAppear1";
                 }
             }
-
-            /**
-             * Turn a position (a,b) to 'axb' key version
-             * * ep. key(0,1) returns '0x1'
-             *
-             * @param x
-             * @param y
-             * @returns {string}
-             */
-            function key(x, y) {
-                return 'b' + x.toString() + 'x' + y.toString();
-            }
-
-            /**
-             * initial game
-             */
-            function initial() {
-                try {
-                    var move = gameLogic.initialGame();
-                    gameService.makeMove(move);
-                } catch (e) {
-                    $log.info(e);
-                    $log.info("initialGame() failed");
-                    return;
+            else if ((delta.rowBeforeMove !== -1) || (delta.colBeforeMove !== -1)) {
+                var row = delta.rowAfterMove;
+                var col = delta.colAfterMove;
+                var img = document.getElementById('img_' + row + 'x' + col);
+                if (img.className === 'scale1') {
+                    img.className = "scale2";
+                }
+                else {
+                    img.className = "scale1";
                 }
             }
-
-            gameService.setGame({
-                gameDeveloperEmail: "xiaodongbo627@gmail.com",
-                minNumberOfPlayers: 2,
-                maxNumberOfPlayers: 2,
-                isMoveOk: gameLogic.isMoveOk,
-                updateUI: updateUI
-            });
-
-            $scope.shouldShowImage = function (row, col) {
-                var cell = $scope.stateAfterMove[key(row, col)];
-                return cell !== "";
-                //return true;
-            };
-            $scope.getImageSrc = function (row, col) {
-                var cell = $scope.stateAfterMove[key(row, col)];
-                return cell === "R1" ? "res/R1.png"
-                    : cell === "R2" ? "res/R2.png"
-                    : cell === "R3" ? "res/R3.png"
+        }
+    }
+    /**
+     * handle the Drag Event using DragAndDropListener
+     *
+     * @param type
+     * @param clientX
+     * @param clientY
+     */
+    function handleDragEvent(type, clientX, clientY) {
+        gameArea = document.getElementById("gameArea");
+        // Center point in gameArea
+        var x = clientX - gameArea.offsetLeft;
+        var y = clientY - gameArea.offsetTop;
+        var row, col;
+        // Is outside gameArea?
+        if (x < 0 || y < 0 || x >= gameArea.clientWidth || y >= gameArea.clientHeight) {
+            log.info("outside gameArea");
+            if (draggingPiece) {
+                // Drag the piece where the touch is (without snapping to a square).
+                var size = getSquareWidthHeight();
+                setDraggingPieceTopLeft({ top: y - size.height / 2, left: x - size.width / 2 });
+            }
+            else {
+                return;
+            }
+        }
+        else {
+            // Inside gameArea. Let's find the containing square's row and col
+            var col = Math.floor(colsNum * x / gameArea.clientWidth);
+            var row = Math.floor(rowsNum * y / gameArea.clientHeight);
+            log.info("now at: ", row, col);
+            if (type === "touchstart" && !draggingStartedRowCol) {
+                // drag started
+                draggingStartedRowCol = { row: row, col: col };
+                if ((state[aiService.key(row, col)] !== null) //not hide
+                    && (state[aiService.key(row, col)] !== '') //has piece
+                    && (((turnIndex === 0) && (state[aiService.key(row, col)][0] === 'R')) //red piece can move
+                        || ((turnIndex === 1) && (state[aiService.key(row, col)][0] === 'B')) //blue piece can move
+                    )) {
+                    draggingPiece = document.getElementById("img_" + draggingStartedRowCol.row + "x" + draggingStartedRowCol.col);
+                }
+            }
+            if (type === "touchend") {
+                var from = draggingStartedRowCol;
+                var to = { row: row, col: col };
+                dragDone(from, to);
+            }
+            else {
+                // Drag continue
+                var size = getSquareWidthHeight();
+                setDraggingPieceTopLeft({ top: y - size.height / 2, left: x - size.width / 2 });
+            }
+        }
+        if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
+            // drag ended
+            // return the piece to it's original style (then angular will take care to hide it).
+            setDraggingPieceTopLeft(getSquareTopLeft(draggingStartedRowCol.row, draggingStartedRowCol.col));
+            draggingStartedRowCol = null;
+            if (draggingPiece !== null) {
+                draggingPiece.removeAttribute("style"); //fix broken UI
+                draggingPiece = null;
+            }
+        }
+    }
+    /**
+     * set Dragging Piece Top Left
+     *
+     * @param topLeft
+     */
+    function setDraggingPieceTopLeft(topLeft) {
+        var size = getSquareWidthHeight();
+        var top = size.height / 10;
+        var left = size.width / 10;
+        var originalSize = getSquareTopLeft(draggingStartedRowCol.row, draggingStartedRowCol.col);
+        if (draggingPiece !== null) {
+            draggingPiece.style.left = (topLeft.left - originalSize.left + left) + "px";
+            draggingPiece.style.top = (topLeft.top - originalSize.top + top) + "px";
+        }
+    }
+    /**
+     * get Square Width Height of board (square position)
+     * @returns {{width: number, height: number}}
+     */
+    function getSquareWidthHeight() {
+        return {
+            width: gameArea.clientWidth * .96 / colsNum,
+            height: gameArea.clientHeight * .98 / rowsNum
+        };
+    }
+    /**
+     * get Square Top Left position
+     * @param row
+     * @param col
+     * @returns {{top: number, left: number}}
+     */
+    function getSquareTopLeft(row, col) {
+        var size = getSquareWidthHeight();
+        return { top: row * size.height, left: col * size.width };
+    }
+    /**
+     * drag Done listener
+     * @param from
+     * @param to
+     */
+    function dragDone(from, to) {
+        log.info("DragDone");
+        var msg = "Dragged piece " + from.row + "x" + from.col + " to square " + to.row + "x" + to.col;
+        log.info(msg);
+        if (window.location.search === '?throwException') {
+            throw new Error("Throwing the error because URL has '?throwException'");
+        }
+        if (!canMakeMove) {
+            return;
+        }
+        //turn a piece
+        if ((from.row === to.row) && (from.col === to.col)
+            && state[aiService.key(from.row, from.col)] === null) {
+            //turn the piece
+            try {
+                var move = gameLogic.createMove(state, from.row, from.col, -1, -1, turnIndex);
+                canMakeMove = false; // to prevent making another move
+                gameService.makeMove(move);
+            }
+            catch (e) {
+                log.info(["Can't turn piece:", from.row, from.col, -1, -1]);
+                return;
+            }
+        }
+        else {
+            try {
+                var move = gameLogic.createMove(state, from.row, from.col, to.row, to.col, turnIndex);
+                canMakeMove = false; // to prevent making another move
+                gameService.makeMove(move);
+            }
+            catch (e) {
+                log.info(["Can not move the piece:", from.row, from.col, to.row, to.col]);
+                return;
+            }
+        }
+    }
+    function shouldShowImage(row, col) {
+        var cell = state[aiService.key(row, col)];
+        return cell !== "";
+        //return true;
+    }
+    game.shouldShowImage = shouldShowImage;
+    ;
+    function getImageSrc(row, col) {
+        var cell = state[aiService.key(row, col)];
+        return cell === "R1" ? "res/R1.png"
+            : cell === "R2" ? "res/R2.png"
+                : cell === "R3" ? "res/R3.png"
                     : cell === "R4" ? "res/R4.png"
-                    : cell === "R5" ? "res/R5.png"
-                    : cell === "R6" ? "res/R6.png"
-                    : cell === "R7" ? "res/R7.png"
-                    : cell === "B1" ? "res/B1.png"
-                    : cell === "B2" ? "res/B2.png"
-                    : cell === "B3" ? "res/B3.png"
-                    : cell === "B4" ? "res/B4.png"
-                    : cell === "B5" ? "res/B5.png"
-                    : cell === "B6" ? "res/B6.png"
-                    : cell === "B7" ? "res/B7.png"
-                    : cell === null ? "res/Hide.png"
-                    : "";
-            };
-            //$scope.helpClicked = function (bool) {
-            //    isHelpIconClicked = bool;
-            //};
-
-        }]);
-;angular.module('myApp').factory('aiService',
-    ["gameLogic",
-        function (gameLogic) {
-
-            'use strict';
-
-            /**
-             * Returns the move that the computer player should do for the given board.
-             * alphaBetaLimits is an object that sets a limit on the alpha-beta search,
-             * and it has a millisecondsLimit:
-             * millisecondsLimit is a time limit
-             *
-             * @param stateAfterMove
-             * @param playerIndex
-             * @param Limits
-             * @returns {*}
-             */
-            function createComputerMove(stateAfterMove, playerIndex, Limits) {
-                var possibleMoves = gameLogic.getPossibleMoves(stateAfterMove, playerIndex);
-                var p1Moves = [];
-                var p2Moves = [];
-                var p3Moves = [];
-                var p4Moves = [];
-                var p5Moves = [];
-                var p6Moves = possibleMoves;
-                for (var i = 0; i < possibleMoves.length; i++) {
-                    var delta = possibleMoves[i][1].set.value;
-
-                    if ((delta.rowAfterMove !== -1) || (delta.colAfterMove !== -1)) {
-                        //kill
-                        if (stateAfterMove[key(delta.rowAfterMove, delta.colAfterMove)]
-                            !== '') {
-                            //kill a unprotected piece
-                            if (!isProtected(stateAfterMove,
-                                    delta.rowBeforeMove, delta.colBeforeMove,
-                                    delta.rowAfterMove, delta.colAfterMove)) {
-                                p1Moves.push(possibleMoves[i]);
-                            }
-                            //kill a protected piece
-                            else{
-                                p2Moves.push(possibleMoves[i]);
-                            }
-                        }
-                        //move
-                        else{
-                            //go to attack position that is not protected
-                            if ((!isProtected(stateAfterMove,
-                                    delta.rowBeforeMove, delta.colBeforeMove,
-                                    delta.rowAfterMove, delta.colAfterMove))
-                                && (isAttackPoint(stateAfterMove,
-                                    delta.rowBeforeMove, delta.colBeforeMove,
-                                    delta.rowAfterMove, delta.colAfterMove))){
-                                p3Moves.push(possibleMoves[i]);
-                            }
-                            //run away
-                            if (!isProtected(stateAfterMove,
-                                    delta.rowBeforeMove, delta.colBeforeMove,
-                                    delta.rowAfterMove, delta.colAfterMove)
-                                && isProtected(stateAfterMove,
-                                    delta.rowBeforeMove, delta.colBeforeMove,
-                                    delta.rowBeforeMove, delta.colBeforeMove)){
-                                    p3Moves.push(possibleMoves[i]);
-                            }
-                            //move to a position not protected
-                            else if (!isProtected(stateAfterMove,
-                                delta.rowBeforeMove, delta.colBeforeMove,
-                                delta.rowAfterMove, delta.colAfterMove)) {
-                                p4Moves.push(possibleMoves[i]);
-                            }
-                            //move to a position protected
-                            else{
-                                p5Moves.push(possibleMoves[i]);
-                            }
-                        }
+                        : cell === "R5" ? "res/R5.png"
+                            : cell === "R6" ? "res/R6.png"
+                                : cell === "R7" ? "res/R7.png"
+                                    : cell === "B1" ? "res/B1.png"
+                                        : cell === "B2" ? "res/B2.png"
+                                            : cell === "B3" ? "res/B3.png"
+                                                : cell === "B4" ? "res/B4.png"
+                                                    : cell === "B5" ? "res/B5.png"
+                                                        : cell === "B6" ? "res/B6.png"
+                                                            : cell === "B7" ? "res/B7.png"
+                                                                : cell === null ? "res/Hide.png"
+                                                                    : "";
+    }
+    game.getImageSrc = getImageSrc;
+    ;
+})(game || (game = {}));
+angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
+    .run(function () {
+    $rootScope['game'] = game;
+    translate.setLanguage('en', {
+        "RULES_OF_BANQI": "Rules of Banqi",
+        "RULES_SLIDE1": "The ranking goes as follows: general, advisor, elephant, chariot, horse, soldier. Only pieces of equal or lower rank may be captured, with one exception. The one exception concerns generals and soldiers: the general cannot capture soldiers, and soldiers can capture the general.",
+        "RULES_SLIDE2": "Except for the cannon, pieces capture with the same motion as for movement: one square up, down, left, or right.",
+        "RULES_SLIDE3": "The cannon is not included in the ranking because it is exceptional: it captures in an unusual way, it can capture a piece of any rank, and yet is vulnerable to capture by any piece except the soldier.",
+        "RULES_SLIDE4": "A cannon captures is: moves any distance along a single row or column of the board, jumping over exactly one intermediate piece. Any other squares between the cannon and its target must be empty. Since a cannon must jump to capture, it cannot capture a piece in an adjacent square.",
+        "RULES_SLIDE5": "Red has the 1st move. The player killed all pieces in other side win the game.",
+        "CLOSE": "Close"
+    });
+    game.init();
+});
+;var aiService;
+(function (aiService) {
+    /** Returns the move that the computer player should do for the given updateUI. */
+    // export function findComputerMove(move: IMove): IMove {
+    //   return createComputerMove(move,
+    //       // at most 1 second for the AI to choose a move (but might be much quicker)
+    //       {millisecondsLimit: 1000});
+    // }
+    /**
+     * Returns the move that the computer player should do for the given state.
+     * alphaBetaLimits is an object that sets a limit on the alpha-beta search,
+     * and it has either a millisecondsLimit or maxDepth field:
+     * millisecondsLimit is a time limit, and maxDepth is a depth limit.
+     */
+    function createComputerMove(stateAfterMove, playerIndex, alphaBetaLimits) {
+        var possibleMoves = gameLogic.getPossibleMoves(stateAfterMove, playerIndex);
+        var p1Moves = [];
+        var p2Moves = [];
+        var p3Moves = [];
+        var p4Moves = [];
+        var p5Moves = [];
+        var p6Moves = possibleMoves;
+        for (var i = 0; i < possibleMoves.length; i++) {
+            var delta = possibleMoves[i][1].set.value;
+            if ((delta.rowAfterMove !== -1) || (delta.colAfterMove !== -1)) {
+                //kill
+                if (stateAfterMove[key(delta.rowAfterMove, delta.colAfterMove)]
+                    !== '') {
+                    //kill a unprotected piece
+                    if (!isProtected(stateAfterMove, delta.rowBeforeMove, delta.colBeforeMove, delta.rowAfterMove, delta.colAfterMove)) {
+                        p1Moves.push(possibleMoves[i]);
                     }
-                    //turn a piece
-                    else{
+                    else {
+                        p2Moves.push(possibleMoves[i]);
+                    }
+                }
+                else {
+                    //go to attack position that is not protected
+                    if ((!isProtected(stateAfterMove, delta.rowBeforeMove, delta.colBeforeMove, delta.rowAfterMove, delta.colAfterMove))
+                        && (isAttackPoint(stateAfterMove, delta.rowBeforeMove, delta.colBeforeMove, delta.rowAfterMove, delta.colAfterMove))) {
+                        p3Moves.push(possibleMoves[i]);
+                    }
+                    //run away
+                    if (!isProtected(stateAfterMove, delta.rowBeforeMove, delta.colBeforeMove, delta.rowAfterMove, delta.colAfterMove)
+                        && isProtected(stateAfterMove, delta.rowBeforeMove, delta.colBeforeMove, delta.rowBeforeMove, delta.colBeforeMove)) {
+                        p3Moves.push(possibleMoves[i]);
+                    }
+                    else if (!isProtected(stateAfterMove, delta.rowBeforeMove, delta.colBeforeMove, delta.rowAfterMove, delta.colAfterMove)) {
                         p4Moves.push(possibleMoves[i]);
                     }
-                }
-
-                if (!angular.equals(p1Moves,[])){
-                    return p1Moves[Math.floor(Math.random()*p1Moves.length)];
-                }
-                if (!angular.equals(p2Moves,[])){
-                    return p2Moves[Math.floor(Math.random()*p2Moves.length)];
-                }
-                if (!angular.equals(p3Moves,[])){
-                    return p3Moves[Math.floor(Math.random()*p3Moves.length)];
-                }
-                if (!angular.equals(p4Moves,[])){
-                    return p4Moves[Math.floor(Math.random()*p4Moves.length)];
-                }
-                if (!angular.equals(p5Moves,[])){
-                    return p5Moves[Math.floor(Math.random()*p5Moves.length)];
-                }
-                if (!angular.equals(p6Moves,[])){
-                    return p6Moves[Math.floor(Math.random()*p6Moves.length)];
-                }
-            }
-
-            /**
-             * Turn a position (a,b) to 'axb' key version
-             * ep. key(0,1) returns '0x1'
-             *
-             * @param x
-             * @param y
-             * @returns {string}
-             */
-            function key(x, y) {
-                return 'b' + x.toString() + 'x' + y.toString();
-            }
-
-            /**
-             * Check if the piece/position is getting protected
-             * that means, if I kill it, it has another can kill me back
-             *
-             * @param stateAfterMove
-             * @param rowBefore
-             * @param colBefore
-             * @param rowAfter
-             * @param colAfter
-             * @returns {boolean}
-             */
-            function isProtected(stateAfterMove, rowBefore, colBefore, rowAfter, colAfter){
-                //check up
-                if (rowAfter - 1 >= 0){
-                    if (stateAfterMove[key(rowAfter - 1, colAfter)] !== ('' || null)) {
-                        if ((stateAfterMove[key(rowAfter - 1, colAfter)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
-                            && (((stateAfterMove[key(rowAfter - 1, colAfter)][1] >= stateAfterMove[key(rowBefore, colBefore)][1])
-                                && !((stateAfterMove[key(rowAfter - 1, colAfter)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1'))
-                                && !(stateAfterMove[key(rowAfter - 1, colAfter)][1] === '2'))
-                            || ((stateAfterMove[key(rowAfter - 1, colAfter)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7'))))
-                        {
-                            return true;
-                        }
-                    }
-                }
-                //check left
-                if (colAfter - 1 >= 0) {
-                    if (stateAfterMove[key(rowAfter, colAfter-1)] !== ('' || null)) {
-                        if ((stateAfterMove[key(rowAfter, colAfter -1)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
-                            && (((stateAfterMove[key(rowAfter, colAfter - 1)][1] >= stateAfterMove[key(rowBefore, colBefore)][1])
-                                && !((stateAfterMove[key(rowAfter, colAfter - 1)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1'))
-                                && !(stateAfterMove[key(rowAfter, colAfter - 1)][1] === '2'))
-                            || ((stateAfterMove[key(rowAfter, colAfter - 1)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7')))) {
-                            return true;
-                        }
-                    }
-
-                }
-                //check down
-                if (rowAfter + 1 <= 3) {
-                    if (stateAfterMove[key(rowAfter + 1, colAfter)] !== ('' || null)){
-                        if ((stateAfterMove[key(rowAfter + 1, colAfter)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
-                            && (((stateAfterMove[key(rowAfter + 1, colAfter)][1] >= stateAfterMove[key(rowBefore, colBefore)][1])
-                                && !((stateAfterMove[key(rowAfter + 1, colAfter)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1'))
-                                && !(stateAfterMove[key(rowAfter + 1, colAfter)][1] === '2'))
-                            || ((stateAfterMove[key(rowAfter + 1, colAfter)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7')))) {
-                            return true;
-                        }
-                    }
-                }
-                //check right
-                if (colAfter + 1 <= 7) {
-                    if (stateAfterMove[key(rowAfter, colAfter + 1)] !== ('' || null)){
-                        if ((stateAfterMove[key(rowAfter, colAfter + 1)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
-                            && (((stateAfterMove[key(rowAfter, colAfter + 1)][1] >= stateAfterMove[key(rowBefore, colBefore)][1])
-                                && !((stateAfterMove[key(rowAfter, colAfter + 1)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1'))
-                                && !(stateAfterMove[key(rowAfter, colAfter + 1)][1] === '2'))
-                            || ((stateAfterMove[key(rowAfter, colAfter + 1)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7')))) {
-                            return true;
-                        }
-                    }
-                }
-
-                // check if protected by cannon
-                var cannon;
-                if (stateAfterMove[key(rowBefore, colBefore)][0] === 'R') cannon = 'B2';
-                if (stateAfterMove[key(rowBefore, colBefore)][0] === 'B') cannon = 'R2';
-                for (var i = 0; i < 4; i++) {
-                    for (var j = 0; j < 8; j++) {
-                        if (stateAfterMove[key(i, j)] === cannon) {
-                            if (cannonRule(stateAfterMove, i, j, rowAfter, colAfter)){
-                                return true;
-                            }
-                        }
-                    }
-                }
-
-                return false;
-            }
-
-            /**
-             * check if protected by cannon
-             *
-             * @param stateBeforeMove
-             * @param rowBeforeMove
-             * @param colBeforeMove
-             * @param rowAfterMove
-             * @param colAfterMove
-             * @returns {boolean}
-             */
-            function cannonRule(stateBeforeMove, rowBeforeMove, colBeforeMove, rowAfterMove, colAfterMove) {
-                //check if it's follow the cannon killing rule
-                if (rowBeforeMove === rowAfterMove) {
-                    var cnt = 0;
-                    var bigger;
-                    var smaller;
-                    if (colBeforeMove > colAfterMove) {
-                        bigger = colBeforeMove;
-                        smaller = colAfterMove;
-                    }
                     else {
-                        bigger = colAfterMove;
-                        smaller = colBeforeMove;
+                        p5Moves.push(possibleMoves[i]);
                     }
-
-                    for (var i = smaller + 1; i < bigger; i++) {
-                        if (stateBeforeMove[key(rowAfterMove, i)] !== '') {
-                            cnt++;
-                        }
-                    }
-                    if (cnt === 1) {
+                }
+            }
+            else {
+                p4Moves.push(possibleMoves[i]);
+            }
+        }
+        if (!angular.equals(p1Moves, [])) {
+            return p1Moves[Math.floor(Math.random() * p1Moves.length)];
+        }
+        if (!angular.equals(p2Moves, [])) {
+            return p2Moves[Math.floor(Math.random() * p2Moves.length)];
+        }
+        if (!angular.equals(p3Moves, [])) {
+            return p3Moves[Math.floor(Math.random() * p3Moves.length)];
+        }
+        if (!angular.equals(p4Moves, [])) {
+            return p4Moves[Math.floor(Math.random() * p4Moves.length)];
+        }
+        if (!angular.equals(p5Moves, [])) {
+            return p5Moves[Math.floor(Math.random() * p5Moves.length)];
+        }
+        if (!angular.equals(p6Moves, [])) {
+            return p6Moves[Math.floor(Math.random() * p6Moves.length)];
+        }
+    }
+    aiService.createComputerMove = createComputerMove;
+    function key(x, y) {
+        return 'b' + x.toString() + 'x' + y.toString();
+    }
+    aiService.key = key;
+    /**
+     * Check if the piece/position is getting protected
+     * that means, if I kill it, it has another can kill me back
+     *
+     * @param stateAfterMove
+     * @param rowBefore
+     * @param colBefore
+     * @param rowAfter
+     * @param colAfter
+     * @returns {boolean}
+     */
+    function isProtected(stateAfterMove, rowBefore, colBefore, rowAfter, colAfter) {
+        //check up
+        if (rowAfter - 1 >= 0) {
+            if (stateAfterMove[key(rowAfter - 1, colAfter)] !== ('' || null)) {
+                if ((stateAfterMove[key(rowAfter - 1, colAfter)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
+                    && (((stateAfterMove[key(rowAfter - 1, colAfter)][1] >= stateAfterMove[key(rowBefore, colBefore)][1])
+                        && !((stateAfterMove[key(rowAfter - 1, colAfter)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1'))
+                        && !(stateAfterMove[key(rowAfter - 1, colAfter)][1] === '2'))
+                        || ((stateAfterMove[key(rowAfter - 1, colAfter)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7')))) {
+                    return true;
+                }
+            }
+        }
+        //check left
+        if (colAfter - 1 >= 0) {
+            if (stateAfterMove[key(rowAfter, colAfter - 1)] !== ('' || null)) {
+                if ((stateAfterMove[key(rowAfter, colAfter - 1)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
+                    && (((stateAfterMove[key(rowAfter, colAfter - 1)][1] >= stateAfterMove[key(rowBefore, colBefore)][1])
+                        && !((stateAfterMove[key(rowAfter, colAfter - 1)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1'))
+                        && !(stateAfterMove[key(rowAfter, colAfter - 1)][1] === '2'))
+                        || ((stateAfterMove[key(rowAfter, colAfter - 1)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7')))) {
+                    return true;
+                }
+            }
+        }
+        //check down
+        if (rowAfter + 1 <= 3) {
+            if (stateAfterMove[key(rowAfter + 1, colAfter)] !== ('' || null)) {
+                if ((stateAfterMove[key(rowAfter + 1, colAfter)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
+                    && (((stateAfterMove[key(rowAfter + 1, colAfter)][1] >= stateAfterMove[key(rowBefore, colBefore)][1])
+                        && !((stateAfterMove[key(rowAfter + 1, colAfter)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1'))
+                        && !(stateAfterMove[key(rowAfter + 1, colAfter)][1] === '2'))
+                        || ((stateAfterMove[key(rowAfter + 1, colAfter)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7')))) {
+                    return true;
+                }
+            }
+        }
+        //check right
+        if (colAfter + 1 <= 7) {
+            if (stateAfterMove[key(rowAfter, colAfter + 1)] !== ('' || null)) {
+                if ((stateAfterMove[key(rowAfter, colAfter + 1)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
+                    && (((stateAfterMove[key(rowAfter, colAfter + 1)][1] >= stateAfterMove[key(rowBefore, colBefore)][1])
+                        && !((stateAfterMove[key(rowAfter, colAfter + 1)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1'))
+                        && !(stateAfterMove[key(rowAfter, colAfter + 1)][1] === '2'))
+                        || ((stateAfterMove[key(rowAfter, colAfter + 1)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7')))) {
+                    return true;
+                }
+            }
+        }
+        // check if protected by cannon
+        var cannon;
+        if (stateAfterMove[key(rowBefore, colBefore)][0] === 'R')
+            cannon = 'B2';
+        if (stateAfterMove[key(rowBefore, colBefore)][0] === 'B')
+            cannon = 'R2';
+        for (var i = 0; i < 4; i++) {
+            for (var j = 0; j < 8; j++) {
+                if (stateAfterMove[key(i, j)] === cannon) {
+                    if (cannonRule(stateAfterMove, i, j, rowAfter, colAfter)) {
                         return true;
                     }
                 }
-                if (colBeforeMove === colAfterMove) {
-                    var cnt = 0;
-                    var bigger;
-                    var smaller;
-                    if (rowBeforeMove > rowAfterMove) {
-                        bigger = rowBeforeMove;
-                        smaller = rowAfterMove;
-                    }
-                    else {
-                        bigger = rowAfterMove;
-                        smaller = rowBeforeMove;
-                    }
-                    for (var i = smaller + 1; i < bigger; i++) {
-                        if (stateBeforeMove[key(i, colAfterMove)] !== '') {
-                            cnt++;
-                        }
-                    }
-                    if (cnt === 1) {
-                        return true;
-                    }
-                }
-
-                return false;
-
             }
-
-
-            function isAttackPoint(stateAfterMove, rowBefore, colBefore, rowAfter, colAfter){
-                //check up
-                if (rowAfter - 1 >= 0){
-                    if (stateAfterMove[key(rowAfter - 1, colAfter)] !== ('' || null)) {
-                        if ((stateAfterMove[key(rowAfter - 1, colAfter)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
-                            && (((stateAfterMove[key(rowAfter - 1, colAfter)][1] < stateAfterMove[key(rowBefore, colBefore)][1])
-                                && !((stateAfterMove[key(rowAfter - 1, colAfter)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7'))
-                                && !(stateAfterMove[key(rowBefore, colBefore)][1] === '2'))
-                            || ((stateAfterMove[key(rowAfter - 1, colAfter)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1')))) {
-                            return true;
-                        }
-                    }
-                }
-                //check left
-                if (colAfter - 1 >= 0) {
-                    if (stateAfterMove[key(rowAfter, colAfter-1)] !== ('' || null)) {
-                        if ((stateAfterMove[key(rowAfter, colAfter -1)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
-                            && (((stateAfterMove[key(rowAfter, colAfter - 1)][1] < stateAfterMove[key(rowBefore, colBefore)][1])
-                                && !((stateAfterMove[key(rowAfter, colAfter - 1)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7'))
-                                && !(stateAfterMove[key(rowBefore, colBefore)][1] === '2'))
-                            || ((stateAfterMove[key(rowAfter, colAfter - 1)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1')))) {
-                            return true;
-                        }
-                    }
-
-                }
-                //check down
-                if (rowAfter + 1 <= 3) {
-                    if (stateAfterMove[key(rowAfter + 1, colAfter)] !== ('' || null)){
-                        if ((stateAfterMove[key(rowAfter + 1, colAfter)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
-                            && (((stateAfterMove[key(rowAfter + 1, colAfter)][1] < stateAfterMove[key(rowBefore, colBefore)][1])
-                                && !((stateAfterMove[key(rowAfter + 1, colAfter)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7'))
-                                && !(stateAfterMove[key(rowBefore, colBefore)][1] === '2'))
-                            || ((stateAfterMove[key(rowAfter + 1, colAfter)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1')))) {
-                            return true;
-                        }
-                    }
-                }
-                //check right
-                if (colAfter + 1 <= 7) {
-                    if (stateAfterMove[key(rowAfter, colAfter + 1)] !== ('' || null)){
-                        if ((stateAfterMove[key(rowAfter, colAfter + 1)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
-                            && (((stateAfterMove[key(rowAfter, colAfter + 1)][1] < stateAfterMove[key(rowBefore, colBefore)][1])
-                                && !((stateAfterMove[key(rowAfter, colAfter + 1)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7'))
-                                && !(stateAfterMove[key(rowBefore, colBefore)][1] === '2'))
-                            || ((stateAfterMove[key(rowAfter, colAfter + 1)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1')))) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
+        }
+        return false;
+    }
+    /**
+     * check if protected by cannon
+     *
+     * @param stateBeforeMove
+     * @param rowBeforeMove
+     * @param colBeforeMove
+     * @param rowAfterMove
+     * @param colAfterMove
+     * @returns {boolean}
+     */
+    function cannonRule(stateBeforeMove, rowBeforeMove, colBeforeMove, rowAfterMove, colAfterMove) {
+        //check if it's follow the cannon killing rule
+        if (rowBeforeMove === rowAfterMove) {
+            var cnt = 0;
+            var bigger;
+            var smaller;
+            if (colBeforeMove > colAfterMove) {
+                bigger = colBeforeMove;
+                smaller = colAfterMove;
             }
-
-            return {createComputerMove: createComputerMove};
-
-        }]);
+            else {
+                bigger = colAfterMove;
+                smaller = colBeforeMove;
+            }
+            for (var i = smaller + 1; i < bigger; i++) {
+                if (stateBeforeMove[key(rowAfterMove, i)] !== '') {
+                    cnt++;
+                }
+            }
+            if (cnt === 1) {
+                return true;
+            }
+        }
+        if (colBeforeMove === colAfterMove) {
+            var cnt = 0;
+            var bigger;
+            var smaller;
+            if (rowBeforeMove > rowAfterMove) {
+                bigger = rowBeforeMove;
+                smaller = rowAfterMove;
+            }
+            else {
+                bigger = rowAfterMove;
+                smaller = rowBeforeMove;
+            }
+            for (var i = smaller + 1; i < bigger; i++) {
+                if (stateBeforeMove[key(i, colAfterMove)] !== '') {
+                    cnt++;
+                }
+            }
+            if (cnt === 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+    function isAttackPoint(stateAfterMove, rowBefore, colBefore, rowAfter, colAfter) {
+        //check up
+        if (rowAfter - 1 >= 0) {
+            if (stateAfterMove[key(rowAfter - 1, colAfter)] !== ('' || null)) {
+                if ((stateAfterMove[key(rowAfter - 1, colAfter)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
+                    && (((stateAfterMove[key(rowAfter - 1, colAfter)][1] < stateAfterMove[key(rowBefore, colBefore)][1])
+                        && !((stateAfterMove[key(rowAfter - 1, colAfter)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7'))
+                        && !(stateAfterMove[key(rowBefore, colBefore)][1] === '2'))
+                        || ((stateAfterMove[key(rowAfter - 1, colAfter)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1')))) {
+                    return true;
+                }
+            }
+        }
+        //check left
+        if (colAfter - 1 >= 0) {
+            if (stateAfterMove[key(rowAfter, colAfter - 1)] !== ('' || null)) {
+                if ((stateAfterMove[key(rowAfter, colAfter - 1)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
+                    && (((stateAfterMove[key(rowAfter, colAfter - 1)][1] < stateAfterMove[key(rowBefore, colBefore)][1])
+                        && !((stateAfterMove[key(rowAfter, colAfter - 1)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7'))
+                        && !(stateAfterMove[key(rowBefore, colBefore)][1] === '2'))
+                        || ((stateAfterMove[key(rowAfter, colAfter - 1)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1')))) {
+                    return true;
+                }
+            }
+        }
+        //check down
+        if (rowAfter + 1 <= 3) {
+            if (stateAfterMove[key(rowAfter + 1, colAfter)] !== ('' || null)) {
+                if ((stateAfterMove[key(rowAfter + 1, colAfter)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
+                    && (((stateAfterMove[key(rowAfter + 1, colAfter)][1] < stateAfterMove[key(rowBefore, colBefore)][1])
+                        && !((stateAfterMove[key(rowAfter + 1, colAfter)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7'))
+                        && !(stateAfterMove[key(rowBefore, colBefore)][1] === '2'))
+                        || ((stateAfterMove[key(rowAfter + 1, colAfter)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1')))) {
+                    return true;
+                }
+            }
+        }
+        //check right
+        if (colAfter + 1 <= 7) {
+            if (stateAfterMove[key(rowAfter, colAfter + 1)] !== ('' || null)) {
+                if ((stateAfterMove[key(rowAfter, colAfter + 1)][0] !== stateAfterMove[key(rowBefore, colBefore)][0])
+                    && (((stateAfterMove[key(rowAfter, colAfter + 1)][1] < stateAfterMove[key(rowBefore, colBefore)][1])
+                        && !((stateAfterMove[key(rowAfter, colAfter + 1)][1] === '1') && (stateAfterMove[key(rowBefore, colBefore)][1] === '7'))
+                        && !(stateAfterMove[key(rowBefore, colBefore)][1] === '2'))
+                        || ((stateAfterMove[key(rowAfter, colAfter + 1)][1] === '7') && (stateAfterMove[key(rowBefore, colBefore)][1] === '1')))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    function getStateScoreForIndex0(move, playerIndex) {
+        if (move[0].endMatch) {
+            var endMatchScores = move[0].endMatch.endMatchScores;
+            return endMatchScores[0] > endMatchScores[1] ? Number.POSITIVE_INFINITY
+                : endMatchScores[0] < endMatchScores[1] ? Number.NEGATIVE_INFINITY
+                    : 0;
+        }
+        return 0;
+    }
+})(aiService || (aiService = {}));
+angular.module('myApp').factory('aiService', function () {
+    return { createComputerMove: aiService.createComputerMove };
+});
